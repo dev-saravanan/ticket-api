@@ -1,18 +1,20 @@
-const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
-const path = require('path');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
+const express = require("express");
+const { v4: uuidv4 } = require("uuid");
+const fs = require("fs");
+const path = require("path");
+const swaggerUi = require("swagger-ui-express");
+const swaggerJsdoc = require("swagger-jsdoc");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
+app.use(cors());
 
 // File path for storing tickets
-const ticketsFile = path.join(__dirname, 'tickets.json');
+const ticketsFile = path.join(__dirname, "tickets.json");
 
 // Initialize tickets file if it doesn't exist
 const initializeTicketsFile = () => {
@@ -24,10 +26,10 @@ const initializeTicketsFile = () => {
 // Read all tickets from file
 const readTickets = () => {
   try {
-    const data = fs.readFileSync(ticketsFile, 'utf-8');
+    const data = fs.readFileSync(ticketsFile, "utf-8");
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading tickets:', error);
+    console.error("Error reading tickets:", error);
     return [];
   }
 };
@@ -37,62 +39,63 @@ const writeTickets = (tickets) => {
   try {
     fs.writeFileSync(ticketsFile, JSON.stringify(tickets, null, 2));
   } catch (error) {
-    console.error('Error writing tickets:', error);
+    console.error("Error writing tickets:", error);
   }
 };
 
 // Swagger Configuration
 const swaggerOptions = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'Ticket Management API',
-      version: '1.0.0',
-      description: 'API to create and manage tickets',
+      title: "Ticket Management API",
+      version: "1.0.0",
+      description: "API to create and manage tickets",
     },
     servers: [
       {
         url: `http://localhost:${PORT}`,
-        description: 'Development server',
+        description: "Development server",
       },
     ],
     components: {
       schemas: {
         Ticket: {
-          type: 'object',
-          required: ['title', 'description'],
+          type: "object",
+          required: ["title", "description"],
           properties: {
             id: {
-              type: 'string',
-              description: 'Unique ticket identifier',
-              example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+              type: "string",
+              description: "Unique ticket identifier",
+              example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
             },
             title: {
-              type: 'string',
-              description: 'Ticket title',
-              example: 'Fix login bug',
+              type: "string",
+              description: "Ticket title",
+              example: "Fix login bug",
             },
             description: {
-              type: 'string',
-              description: 'Detailed description of the ticket',
-              example: 'Users are unable to login with special characters in password',
+              type: "string",
+              description: "Detailed description of the ticket",
+              example:
+                "Users are unable to login with special characters in password",
             },
             createdAt: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Ticket creation timestamp',
-              example: '2025-11-17T10:30:00.000Z',
+              type: "string",
+              format: "date-time",
+              description: "Ticket creation timestamp",
+              example: "2025-11-17T10:30:00.000Z",
             },
           },
         },
       },
     },
   },
-  apis: ['./index.js'],
+  apis: ["./index.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /**
  * @swagger
@@ -133,13 +136,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *                 error:
  *                   type: string
  */
-app.post('/tickets', (req, res) => {
+app.post("/tickets", (req, res) => {
   const { title, description } = req.body;
 
   // Validation
   if (!title || !description) {
     return res.status(400).json({
-      error: 'Title and description are required fields',
+      error: "Title and description are required fields",
     });
   }
 
@@ -179,7 +182,7 @@ app.post('/tickets', (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/Ticket'
  */
-app.get('/tickets', (req, res) => {
+app.get("/tickets", (req, res) => {
   const tickets = readTickets();
   res.json(tickets);
 });
@@ -202,8 +205,8 @@ app.get('/tickets', (req, res) => {
  *                   type: string
  *                   example: "OK"
  */
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK' });
+app.get("/health", (req, res) => {
+  res.json({ status: "OK" });
 });
 
 // Initialize and start server
